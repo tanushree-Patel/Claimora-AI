@@ -22,6 +22,10 @@ async def test_create_and_read_medical_code():
         fetched = result.scalar_one()
         assert fetched.display_name == "Test condition"
 
+        # Cleanup test row
+        await session.delete(fetched)
+        await session.commit()
+
 
 @pytest.mark.asyncio
 async def test_create_health_claim_defaults_to_draft_status():
@@ -30,3 +34,7 @@ async def test_create_health_claim_defaults_to_draft_status():
         session.add(claim)
         await session.commit()
         assert claim.status == "DRAFT"
+
+        # Cleanup test row
+        await session.delete(claim)
+        await session.commit()
