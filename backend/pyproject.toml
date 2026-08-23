@@ -16,9 +16,15 @@ dependencies = [
     "sqlalchemy>=2.0.52",
     "uvicorn>=0.52.4",
     "langchain-google-genai>=4.3.5",
+    "pydantic>=2.13.4",
 ]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
 asyncio_mode = "auto"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
 

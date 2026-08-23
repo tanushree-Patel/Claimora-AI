@@ -1,24 +1,33 @@
+from datetime import date
+
 from pydantic import BaseModel, Field
 
 
 class PatientInfo(BaseModel):
-    full_name: str | None = Field(default=None, description="Patient's full name")
-    age: int | None = Field(default=None, description="Patient's age")
-    gender: str | None = Field(default=None, description="Patient's gender")
+    full_name: str
+    date_of_birth: date | None = None
+    gender: str | None = None
+    abha_id: str | None = Field(default=None, description="Ayushman Bharat Health Account ID")
+    policy_number: str | None = None
 
 
 class HospitalInfo(BaseModel):
-    hospital_name: str | None = Field(default=None, description="Name of the hospital")
-    admission_date: str | None = Field(default=None, description="Date of admission")
-    discharge_date: str | None = Field(default=None, description="Date of discharge")
+    hospital_name: str
+    hospital_id: str | None = None
+    admission_date: date | None = None
+    discharge_date: date | None = None
 
 
 class ClinicalInfo(BaseModel):
-    diagnosis_text: str | None = Field(default=None, description="Primary or secondary diagnosis description")
-    symptoms: list[str] | None = Field(default=None, description="List of observed symptoms")
+    diagnosis_text: str = Field(..., description="Raw diagnosis phrase as stated in the clinical note")
+    procedure_text: str | None = None
+    symptoms: list[str] = Field(default_factory=list)
 
 
 class ExtractedClaimData(BaseModel):
-    patient: PatientInfo = Field(default_factory=PatientInfo)
-    hospital: HospitalInfo = Field(default_factory=HospitalInfo)
-    clinical: ClinicalInfo = Field(default_factory=ClinicalInfo)
+    patient: PatientInfo
+    hospital: HospitalInfo
+    clinical: ClinicalInfo
+    extraction_confidence: float | None = Field(
+        default=None, ge=0.0, le=1.0, description="Model's self-reported confidence, not clinical certainty"
+    )
