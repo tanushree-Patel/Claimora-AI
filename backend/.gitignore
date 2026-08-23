@@ -1,14 +1,23 @@
 # Virtual environment
 .venv/
 
-# Python cache
+# Python cache & build artifacts
 __pycache__/
 *.py[cod]
+*$py.class
+*.egg-info/
 
-# Environment variables / secrets
+# Environment variables / secrets (allow .env.example template)
 .env
+.env.*
+!.env.example
 
-# Test / coverage
+# Test / coverage / typing
 .pytest_cache/
 .coverage
 htmlcov/
+.mypy_cache/
+
+# OS / IDE files
+.DS_Store
+*.log
