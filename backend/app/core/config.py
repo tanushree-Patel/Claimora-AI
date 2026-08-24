@@ -11,6 +11,8 @@ class Settings(BaseSettings):
 
     model_config=SettingsConfigDict(env_file=".env",case_sensitive=False)
 
+    embedding_model_name: str = "models/text-embedding-004"
+    retrieval_top_k: int = 5
 
 @lru_cache
 def get_settings()->Settings:
