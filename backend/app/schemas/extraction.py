@@ -31,3 +31,4 @@ class ExtractedClaimData(BaseModel):
     extraction_confidence: float | None = Field(
         default=None, ge=0.0, le=1.0, description="Model's self-reported confidence, not clinical certainty"
     )
+    

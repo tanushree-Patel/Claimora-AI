@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     log_level:str="INFO"
   
     gemini_api_key: str = ""
-    gemini_model_name: str = "gemini-2.5-flash"
+    gemini_model_name: str = "gemini-3.5-flash"
 
     model_config=SettingsConfigDict(env_file=".env",case_sensitive=False)
 
