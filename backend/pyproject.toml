@@ -17,15 +17,12 @@ dependencies = [
     "uvicorn>=0.52.4",
     "langchain-google-genai>=4.3.5",
     "pydantic>=2.13.4",
-    "google-generativeai>=0.8.6",
+    "google-genai",
 ]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
 asyncio_mode = "auto"
-filterwarnings = [
-    "ignore::FutureWarning",
-]
 
 [dependency-groups]
 dev = [

@@ -21,7 +21,7 @@ async def backfill() -> None:
 
         for code in codes:
             text = f"{code.display_name}. {code.description or ''}".strip()
-            code.embedding = await embedding_service.embed_text(text, task_type="retrieval_document")
+            code.embedding = await embedding_service.embed_text(text, task_type="RETRIEVAL_DOCUMENT")
 
         await session.commit()
         print(f"Backfilled embeddings for {len(codes)} codes.")
