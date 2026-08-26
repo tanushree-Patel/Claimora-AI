@@ -13,7 +13,7 @@ class ClaimsRepository:
     async def create_claim(self, session_id: str) -> IndianHealthClaim:
         claim = IndianHealthClaim(session_id=session_id, status="DRAFT")
         self.db.add(claim)
-        await self.db.flush()  # assigns claim.id without committing yet
+        await self.db.flush()
         self._log_event(claim.id, "CREATED")
         await self.db.commit()
         await self.db.refresh(claim)
