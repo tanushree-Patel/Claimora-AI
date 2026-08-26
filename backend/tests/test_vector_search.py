@@ -15,13 +15,13 @@ async def test_vector_search_returns_closest_first():
         assert len(codes) >= 2, "Seed data must run before this test"
 
         # Give them distinguishable embeddings for this test
-        codes[0].embedding = [0.5] * 768
-        codes[1].embedding = [0.1] * 768
+        codes[0].embedding = [1.0] + [0.0] * 767
+        codes[1].embedding = [0.0] + [1.0] * 767
         await session.commit()
 
         try:
             repo = CodesRepository(session)
-            query_embedding = [0.5] * 768
+            query_embedding = [1.0] + [0.0] * 767
             matches = await repo.vector_search(query_embedding, limit=2)
 
             assert len(matches) >= 2
