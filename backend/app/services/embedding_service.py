@@ -19,6 +19,7 @@ class EmbeddingService:
                 model=self._model_name,
                 content=text,
                 task_type=task_type,
+                output_dimensionality=768,
             )
         except Exception as exc:
             logger.error("Embedding call failed: %s", exc)

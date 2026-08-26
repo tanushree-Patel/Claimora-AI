@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
     model_config=SettingsConfigDict(env_file=".env",case_sensitive=False)
 
-    embedding_model_name: str = "models/text-embedding-004"
+    embedding_model_name: str = "models/gemini-embedding-2"
     retrieval_top_k: int = 5
 
 @lru_cache

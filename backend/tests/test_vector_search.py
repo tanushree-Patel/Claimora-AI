@@ -9,14 +9,26 @@ from app.repositories.codes_repository import CodesRepository
 @pytest.mark.asyncio
 async def test_vector_search_returns_closest_first():
     async with AsyncSessionLocal() as session:
-        # Give two existing seeded codes distinguishable embeddings for this test
+        # Ensure we have at least two codes seeded
         result = await session.execute(select(IndianMedicalCode).limit(2))
         codes = result.scalars().all()
-        assert len(codes) >= 2, "Seed data + backfill must run before this test"
+        assert len(codes) >= 2, "Seed data must run before this test"
 
-        repo = CodesRepository(session)
-        query_embedding = codes[0].embedding  
-        matches = await repo.vector_search(query_embedding, limit=2)
+        # Give them distinguishable embeddings for this test
+        codes[0].embedding = [0.5] * 768
+        codes[1].embedding = [0.1] * 768
+        await session.commit()
 
-        assert matches[0][0].id == codes[0].id
-        assert matches[0][1] > 0.99  
+        try:
+            repo = CodesRepository(session)
+            query_embedding = [0.5] * 768
+            matches = await repo.vector_search(query_embedding, limit=2)
+
+            assert len(matches) >= 2
+            assert matches[0][0].id == codes[0].id
+            assert matches[0][1] > 0.99
+        finally:
+            # Clean up/reset their embeddings to None so we don't pollute subsequent runs
+            codes[0].embedding = None
+            codes[1].embedding = None
+            await session.commit()
