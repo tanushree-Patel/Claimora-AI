@@ -17,6 +17,7 @@ dependencies = [
     "uvicorn>=0.52.4",
     "langchain-google-genai>=4.3.5",
     "pydantic>=2.13.4",
+    "google-generativeai>=0.8.6",
 ]
 
 [tool.pytest.ini_options]

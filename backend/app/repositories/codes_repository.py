@@ -21,4 +21,13 @@ class CodesRepository:
         rows = result.all()
         return [(code, 1 - (dist / 2)) for code, dist in rows]
 
-    # Teammate B adds trigram_search() here — see Part B
+    async def trigram_search(self, query_text: str, limit: int) -> list[tuple[IndianMedicalCode, float]]:
+        similarity = func.similarity(IndianMedicalCode.display_name, query_text)
+        stmt = (
+            select(IndianMedicalCode, similarity.label("sim"))
+            .where(similarity > 0.1)  # discard near-zero noise matches
+            .order_by(similarity.desc())
+            .limit(limit)
+        )
+        result = await self.db.execute(stmt)
+        return [(code, float(sim)) for code, sim in result.all()]        
