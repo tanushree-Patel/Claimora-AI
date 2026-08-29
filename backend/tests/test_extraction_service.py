@@ -1,4 +1,3 @@
-# tests/test_extraction_service.py
 from unittest.mock import AsyncMock, patch
 
 import pytest
