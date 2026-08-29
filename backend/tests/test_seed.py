@@ -1,5 +1,3 @@
-
-# backend/tests/test_seed.py
 import pytest
 from sqlalchemy import select
 

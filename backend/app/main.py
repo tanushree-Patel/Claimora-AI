@@ -6,14 +6,17 @@ from app.api.v1.codes import router as codes_router
 from app.api.v1.documents import router as documents_router
 from app.api.v1.health import router as health_router
 from app.core.logging import configure_logging, get_logger
+from app.graph.checkpointer import close_checkpointer, init_checkpointer
 
 configure_logging()
 logger = get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await init_checkpointer()
     logger.info("Application startup complete")
     yield
+    await close_checkpointer()
     logger.info("Application shutdown complete")
 
 app = FastAPI(
