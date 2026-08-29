@@ -5,6 +5,13 @@ from httpx import ASGITransport, AsyncClient
 
 from app.main import app
 from app.schemas.extraction import ClinicalInfo, ExtractedClaimData, HospitalInfo, PatientInfo
+from app.graph.checkpointer import init_checkpointer, close_checkpointer
+
+@pytest.fixture(autouse=True)
+async def manage_checkpointer():
+    await init_checkpointer()
+    yield
+    await close_checkpointer()
 
 FAKE_EXTRACTION = ExtractedClaimData(
     patient=PatientInfo(full_name="Asha Rao"),
