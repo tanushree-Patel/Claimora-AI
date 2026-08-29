@@ -8,6 +8,7 @@ class Settings(BaseSettings):
   
     gemini_api_key: str = ""
     gemini_model_name: str = "gemini-3.5-flash"
+    langgraph_db_url: str 
 
     model_config=SettingsConfigDict(env_file=".env",case_sensitive=False)
 
