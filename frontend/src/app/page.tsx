@@ -17,7 +17,7 @@ export default function HomePage() {
     try {
       const result = await processClaim(rawText);
       if (result.status === "PENDING_REVIEW") {
-        router.push(`/review/${result.session_id}`);
+        router.push(`/review/${result.session_id}?candidates=${encodeURIComponent(JSON.stringify(result.candidates))}`);
       } else {
         setError(`Claim could not proceed: ${result.status}. ${result.validation_errors.join(", ")}`);
       }

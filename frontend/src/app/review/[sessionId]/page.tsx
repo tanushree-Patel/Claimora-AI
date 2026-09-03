@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 
 import CandidateList from "@/components/CandidateList";
 import ExtractedDataPanel from "@/components/ExtractedDataPanel";
@@ -12,12 +12,14 @@ export default function ReviewPage({
   params,
   searchParams,
 }: {
-  params: { sessionId: string };
-  searchParams: { candidates?: string };
+  params: Promise<{ sessionId: string }>;
+  searchParams: Promise<{ candidates?: string }>;
 }) {
-  // NOTE: passed via query string from page.tsx's redirect (see Integration Note below)
-  const candidates: CodeCandidate[] = searchParams.candidates
-    ? JSON.parse(decodeURIComponent(searchParams.candidates))
+  const { sessionId } = use(params);
+  const resolvedSearchParams = use(searchParams);
+
+  const candidates: CodeCandidate[] = resolvedSearchParams.candidates
+    ? JSON.parse(decodeURIComponent(resolvedSearchParams.candidates))
     : [];
 
   const [approvedCodes, setApprovedCodes] = useState<string[]>([]);
@@ -28,7 +30,7 @@ export default function ReviewPage({
   async function handleSubmitReview() {
     setError(null);
     try {
-      const result = await resumeClaim(params.sessionId, approvedCodes, notes);
+      const result = await resumeClaim(sessionId, approvedCodes, notes);
       setStatus(result.status);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
@@ -36,12 +38,12 @@ export default function ReviewPage({
   }
 
   if (status === "APPROVED") {
-    return <div className="p-8 text-lg font-medium text-green-700">Claim approved — session {params.sessionId}</div>;
+    return <div className="p-8 text-lg font-medium text-green-700">Claim approved — session {sessionId}</div>;
   }
 
   return (
     <main className="mx-auto max-w-5xl p-8 grid grid-cols-2 gap-6">
-      <ExtractedDataPanel sessionId={params.sessionId} />
+      <ExtractedDataPanel sessionId={sessionId} />
       <div>
         <CandidateList candidates={candidates} approvedCodes={approvedCodes} onToggle={setApprovedCodes} />
         <ReviewActions notes={notes} onNotesChange={setNotes} onSubmit={handleSubmitReview} />
