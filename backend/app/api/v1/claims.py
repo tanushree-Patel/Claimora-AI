@@ -1,6 +1,8 @@
+from pathlib import Path
 import uuid
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from langgraph.types import Command
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -101,3 +103,11 @@ async def get_claim_state(
         validation_errors=values.get("validation_errors", []),
         irdai_pdf_url=pdf_url,
     )
+
+
+@router.get("/claims/{session_id}/pdf")
+async def get_claim_pdf(session_id: str):
+    pdf_path = Path("generated_pdfs") / f"claim_{session_id}.pdf"
+    if not pdf_path.exists():
+        raise HTTPException(status_code=404, detail="Generated claim PDF not found")
+    return FileResponse(pdf_path, media_type="application/pdf", filename=f"claim_{session_id}.pdf")
