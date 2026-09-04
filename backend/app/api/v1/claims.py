@@ -37,11 +37,14 @@ async def process_claim(
         status=result.get("status", "UNKNOWN"),
         candidates=result.get("candidates", []),
         validation_errors=result.get("validation_errors", []),
+        irdai_pdf_url=result.get("irdai_pdf_url"),
     )
 
 
 @router.post("/claims/process-file", response_model=ProcessClaimResponse)
-async def process_claim_file(file: UploadFile = File(...)) -> ProcessClaimResponse:
+async def process_claim_file(
+    file: UploadFile = File(...), db: AsyncSession = Depends(get_db)
+) -> ProcessClaimResponse:
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Only PDF uploads are supported")
 
@@ -52,7 +55,7 @@ async def process_claim_file(file: UploadFile = File(...)) -> ProcessClaimRespon
     except ExtractionError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
-    return await process_claim(ProcessClaimRequest(raw_text=raw_text))
+    return await process_claim(ProcessClaimRequest(raw_text=raw_text), db=db)
 
 
 @router.post("/claims/{session_id}/resume", response_model=ResumeClaimResponse)
@@ -65,7 +68,11 @@ async def resume_claim(session_id: str, payload: ResumeClaimRequest) -> ResumeCl
         raise HTTPException(status_code=404, detail="No paused claim found for this session_id")
 
     result = await graph.ainvoke(Command(resume=payload.model_dump()), config=config)
-    return ResumeClaimResponse(session_id=session_id, status=result.get("status", "UNKNOWN"))
+    return ResumeClaimResponse(
+        session_id=session_id,
+        status=result.get("status", "UNKNOWN"),
+        irdai_pdf_url=result.get("irdai_pdf_url"),
+    )
 
 
 @router.get("/claims/{session_id}", response_model=ProcessClaimResponse)
@@ -83,4 +90,5 @@ async def get_claim_state(session_id: str) -> ProcessClaimResponse:
         status=values.get("status", "UNKNOWN"),
         candidates=values.get("candidates", []),
         validation_errors=values.get("validation_errors", []),
+        irdai_pdf_url=values.get("irdai_pdf_url"),
     )

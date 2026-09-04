@@ -12,6 +12,7 @@ class ProcessClaimResponse(BaseModel):
     status: str
     candidates: list[CodeCandidate] = []
     validation_errors: list[str] = []
+    irdai_pdf_url: str | None = None
 
 
 class ResumeClaimRequest(BaseModel):
@@ -22,3 +23,4 @@ class ResumeClaimRequest(BaseModel):
 class ResumeClaimResponse(BaseModel):
     session_id: str
     status: str
+    irdai_pdf_url: str | None = None
