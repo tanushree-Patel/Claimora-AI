@@ -76,7 +76,9 @@ async def resume_claim(session_id: str, payload: ResumeClaimRequest) -> ResumeCl
 
 
 @router.get("/claims/{session_id}", response_model=ProcessClaimResponse)
-async def get_claim_state(session_id: str) -> ProcessClaimResponse:
+async def get_claim_state(
+    session_id: str, db: AsyncSession = Depends(get_db)
+) -> ProcessClaimResponse:
     graph = build_claim_graph()
     config = {"configurable": {"thread_id": session_id}}
 
@@ -85,10 +87,17 @@ async def get_claim_state(session_id: str) -> ProcessClaimResponse:
         raise HTTPException(status_code=404, detail="No claim found for this session_id")
 
     values = state.values
+    pdf_url = values.get("irdai_pdf_url")
+    if not pdf_url:
+        repo = ClaimsRepository(db)
+        claim = await repo.get_by_session_id(session_id)
+        if claim:
+            pdf_url = claim.irdai_pdf_url
+
     return ProcessClaimResponse(
         session_id=session_id,
         status=values.get("status", "UNKNOWN"),
         candidates=values.get("candidates", []),
         validation_errors=values.get("validation_errors", []),
-        irdai_pdf_url=values.get("irdai_pdf_url"),
+        irdai_pdf_url=pdf_url,
     )

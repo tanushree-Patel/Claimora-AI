@@ -9,3 +9,4 @@ class ClaimGraphState(TypedDict, total=False):
     candidates: list[dict]
     review_decision: dict | None
     status: str
+    irdai_pdf_url: str | None
