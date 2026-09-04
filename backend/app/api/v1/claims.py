@@ -2,6 +2,9 @@ import uuid
 
 from fastapi import APIRouter, HTTPException
 from langgraph.types import Command
+from fastapi import File, UploadFile
+from app.services.document_ingestion_service import DocumentIngestionService
+from app.services.exceptions import ExtractionError
 
 from app.graph.builder import build_claim_graph
 from app.schemas.graph import (
@@ -41,3 +44,18 @@ async def resume_claim(session_id: str, payload: ResumeClaimRequest) -> ResumeCl
 
     result = await graph.ainvoke(Command(resume=payload.model_dump()), config=config)
     return ResumeClaimResponse(session_id=session_id, status=result.get("status", "UNKNOWN"))
+
+
+@router.post("/claims/process-file", response_model=ProcessClaimResponse)
+async def process_claim_file(file: UploadFile = File(...)) -> ProcessClaimResponse:
+    if file.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Only PDF uploads are supported")
+
+    file_bytes = await file.read()
+    ingestion = DocumentIngestionService()
+    try:
+        raw_text = ingestion.extract_text(file_bytes)
+    except ExtractionError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+    return await process_claim(ProcessClaimRequest(raw_text=raw_text))
