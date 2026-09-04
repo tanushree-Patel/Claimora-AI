@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from langgraph.types import Command
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,6 +13,8 @@ from app.schemas.graph import (
     ResumeClaimRequest,
     ResumeClaimResponse,
 )
+from app.services.document_ingestion_service import DocumentIngestionService
+from app.services.exceptions import ExtractionError
 
 router = APIRouter(tags=["claims"])
 
@@ -36,6 +38,21 @@ async def process_claim(
         candidates=result.get("candidates", []),
         validation_errors=result.get("validation_errors", []),
     )
+
+
+@router.post("/claims/process-file", response_model=ProcessClaimResponse)
+async def process_claim_file(file: UploadFile = File(...)) -> ProcessClaimResponse:
+    if file.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Only PDF uploads are supported")
+
+    file_bytes = await file.read()
+    ingestion = DocumentIngestionService()
+    try:
+        raw_text = ingestion.extract_text(file_bytes)
+    except ExtractionError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+    return await process_claim(ProcessClaimRequest(raw_text=raw_text))
 
 
 @router.post("/claims/{session_id}/resume", response_model=ResumeClaimResponse)
