@@ -19,6 +19,16 @@ export async function processClaim(rawText: string): Promise<ProcessClaimRespons
   return handleResponse<ProcessClaimResponse>(res);
 }
 
+export async function processClaimFile(file: File): Promise<ProcessClaimResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${BASE}/claims/process-file`, {
+    method: "POST",
+    body: formData,
+  });
+  return handleResponse<ProcessClaimResponse>(res);
+}
+
 export async function resumeClaim(
   sessionId: string,
   approvedCodes: string[],
