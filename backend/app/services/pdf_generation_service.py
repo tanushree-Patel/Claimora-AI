@@ -10,15 +10,11 @@ from app.services.exceptions import ExtractionError
 
 logger = get_logger(__name__)
 
-TEMPLATE_PATH = Path("assets/irdai_part_b_template.pdf")
 OUTPUT_DIR = Path("generated_pdfs")
 
 
 class PdfGenerationService:
     def generate(self, extracted_data: dict, verified_codes: dict, session_id: str) -> str:
-        if not TEMPLATE_PATH.exists():
-            raise ExtractionError(f"PDF template not found at {TEMPLATE_PATH}")
-
         OUTPUT_DIR.mkdir(exist_ok=True)
         output_path = OUTPUT_DIR / f"claim_{session_id}.pdf"
 
