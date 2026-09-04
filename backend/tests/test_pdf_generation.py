@@ -5,12 +5,9 @@ from app.services.pdf_generation_service import PdfGenerationService
 
 
 def test_generate_creates_pdf_file(tmp_path, monkeypatch):
-    import shutil
-    from pathlib import Path
-    root = Path.cwd()
     monkeypatch.chdir(tmp_path)
     (tmp_path / "assets").mkdir()
-    shutil.copy(root / "tests/fixtures/irdai_test_template.pdf", tmp_path / "assets" / "irdai_part_b_template.pdf")
+    (tmp_path / "assets" / "irdai_part_b_template.pdf").touch()
 
     service = PdfGenerationService()
     path = service.generate(
