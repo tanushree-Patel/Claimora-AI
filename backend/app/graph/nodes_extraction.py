@@ -1,4 +1,7 @@
+from app.db.session import AsyncSessionLocal
 from app.graph.state import ClaimGraphState
+from app.repositories.claims_repository import ClaimsRepository
+from app.schemas.claims import ClaimStatus
 from app.services.exceptions import ExtractionError
 from app.services.extraction_service import ExtractionService
 
@@ -15,7 +18,18 @@ async def extract_data(state: ClaimGraphState) -> dict:
         result = await service.extract(state["raw_text"])
     except ExtractionError:
         return {"status": "EXTRACTION_FAILED", "validation_errors": ["LLM extraction failed"]}
-    return {"extracted_data": result.model_dump(mode="json"), "status": "EXTRACTED"}
+    
+    extracted_dict = result.model_dump(mode="json")
+    session_id = state.get("session_id")
+    if session_id:
+        async with AsyncSessionLocal() as session:
+            repo = ClaimsRepository(session)
+            claim = await repo.get_by_session_id(session_id)
+            if claim:
+                await repo.update_extracted_data(claim, extracted_data=extracted_dict, status=ClaimStatus.EXTRACTED)
+                await session.commit()
+
+    return {"extracted_data": extracted_dict, "status": "EXTRACTED"}
 
 
 async def validate_compliance(state: ClaimGraphState) -> dict:

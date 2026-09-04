@@ -1,9 +1,12 @@
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from langgraph.types import Command
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.session import get_db
 from app.graph.builder import build_claim_graph
+from app.repositories.claims_repository import ClaimsRepository
 from app.schemas.graph import (
     ProcessClaimRequest,
     ProcessClaimResponse,
@@ -15,8 +18,13 @@ router = APIRouter(tags=["claims"])
 
 
 @router.post("/claims/process", response_model=ProcessClaimResponse)
-async def process_claim(payload: ProcessClaimRequest) -> ProcessClaimResponse:
+async def process_claim(
+    payload: ProcessClaimRequest, db: AsyncSession = Depends(get_db)
+) -> ProcessClaimResponse:
     session_id = str(uuid.uuid4())
+    repo = ClaimsRepository(db)
+    await repo.create_claim(session_id=session_id)
+
     graph = build_claim_graph()
     config = {"configurable": {"thread_id": session_id}}
 
@@ -41,3 +49,21 @@ async def resume_claim(session_id: str, payload: ResumeClaimRequest) -> ResumeCl
 
     result = await graph.ainvoke(Command(resume=payload.model_dump()), config=config)
     return ResumeClaimResponse(session_id=session_id, status=result.get("status", "UNKNOWN"))
+
+
+@router.get("/claims/{session_id}", response_model=ProcessClaimResponse)
+async def get_claim_state(session_id: str) -> ProcessClaimResponse:
+    graph = build_claim_graph()
+    config = {"configurable": {"thread_id": session_id}}
+
+    state = await graph.aget_state(config)
+    if state is None or not state.values:
+        raise HTTPException(status_code=404, detail="No claim found for this session_id")
+
+    values = state.values
+    return ProcessClaimResponse(
+        session_id=session_id,
+        status=values.get("status", "UNKNOWN"),
+        candidates=values.get("candidates", []),
+        validation_errors=values.get("validation_errors", []),
+    )

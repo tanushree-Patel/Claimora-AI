@@ -50,4 +50,4 @@ async def test_full_interrupt_and_resume_recovery():
             )
 
     assert resume_response.status_code == 200
-    assert resume_response.json()["status"] == "APPROVED"
+    assert resume_response.json()["status"] == "COMPLETED"

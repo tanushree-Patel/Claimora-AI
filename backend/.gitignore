@@ -18,6 +18,9 @@ __pycache__/
 htmlcov/
 .mypy_cache/
 
+# Generated output files
+generated_pdfs/
+
 # OS / IDE files
 .DS_Store
 *.log

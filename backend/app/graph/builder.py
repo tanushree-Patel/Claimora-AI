@@ -4,7 +4,7 @@ from app.graph.checkpointer import get_checkpointer
 from app.graph.nodes_extraction import extract_data, validate_compliance
 from app.graph.nodes_review import finalize, human_review, retrieve_codes
 from app.graph.state import ClaimGraphState
-
+from app.graph.nodes_finalize import generate_pdf
 
 def _after_extract(state: ClaimGraphState) -> str:
     return "failed" if state.get("status") == "EXTRACTION_FAILED" else "continue"
@@ -22,12 +22,14 @@ def build_claim_graph():
     graph.add_node("retrieve_codes", retrieve_codes)
     graph.add_node("human_review", human_review)
     graph.add_node("finalize", finalize)
+    graph.add_node("generate_pdf", generate_pdf)
 
     graph.set_entry_point("extract_data")
     graph.add_conditional_edges("extract_data", _after_extract, {"failed": END, "continue": "validate_compliance"})
     graph.add_conditional_edges("validate_compliance", _after_validate, {"failed": END, "continue": "retrieve_codes"})
     graph.add_edge("retrieve_codes", "human_review")
     graph.add_edge("human_review", "finalize")
-    graph.add_edge("finalize", END)
+    graph.add_edge("finalize", "generate_pdf")
+    graph.add_edge("generate_pdf", END)     
 
     return graph.compile(checkpointer=get_checkpointer())

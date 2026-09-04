@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use,useEffect, useState } from "react";
 
 import CandidateList from "@/components/CandidateList";
 import ExtractedDataPanel from "@/components/ExtractedDataPanel";
@@ -15,18 +15,20 @@ export default function ReviewPage({
   params: Promise<{ sessionId: string }>;
   searchParams: Promise<{ candidates?: string }>;
 }) {
-  const { sessionId } = use(params);
   const resolvedSearchParams = use(searchParams);
-
-  const candidates: CodeCandidate[] = resolvedSearchParams.candidates
-    ? JSON.parse(decodeURIComponent(resolvedSearchParams.candidates))
-    : [];
 
   const [approvedCodes, setApprovedCodes] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const { sessionId } = use(params);
+  const [candidates, setCandidates] = useState<CodeCandidate[]>([]);
+  useEffect(() => {
+    fetch(`/api/backend/claims/${sessionId}`)
+      .then((res) => res.json())
+      .then((data) => setCandidates(data.candidates || []));
+  }, [sessionId]);
   async function handleSubmitReview() {
     setError(null);
     try {
